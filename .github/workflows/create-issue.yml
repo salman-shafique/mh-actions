@@ -2,7 +2,7 @@ name: Create Issue
 
 on:
   workflow_dispatch:
-  push:  # Trigger on push events
+  push: # Trigger on push events
     branches:
       - master
 jobs:
