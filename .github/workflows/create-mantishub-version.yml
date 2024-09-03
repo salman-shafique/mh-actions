@@ -1,19 +1,18 @@
-name: Create Version
+name: Create Issue
 
 on:
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
   push:  # Trigger on push events
     branches:
-      - master  # Run the action when a push or merge happens on the master branch
-
+      - master
 jobs:
-  create-version:
+  create-mantishub-version:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Create MantisHub Version
+      - name: Create MantisHub version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
           REPO_OWNER: ${{ github.repository_owner }}
