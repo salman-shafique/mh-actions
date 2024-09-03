@@ -2,9 +2,11 @@ name: Create Issue
 
 on:
   workflow_dispatch:
-
+  push:  # Trigger on push events
+    branches:
+      - master
 jobs:
-  create-issue:
+  create-issue:g
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
