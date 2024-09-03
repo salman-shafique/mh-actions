@@ -6,7 +6,7 @@ on:
     branches:
       - master
 jobs:
-  create-issue:g
+  create-issue:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
