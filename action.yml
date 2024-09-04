@@ -28,7 +28,7 @@ runs:
       shell: bash
       run: |
         curl --location "${{ inputs.url }}/api/rest/issues/" \
-          --header "Authorization: ${ inputs.api-key }" \
+          --header "Authorization: ${{ inputs.api-key }}" \
           --header 'Content-Type: application/json' \
           --data '{
             "project": { "id": "${{ inputs.project-id }}" },
