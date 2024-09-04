@@ -8,7 +8,7 @@ inputs:
     description: "API key for authentication"
     required: true
   project-id:
-    description: "Project ID or name"
+    description: "Project ID"
     required: true
   summary:
     description: "Summary of the issue"
@@ -16,10 +16,9 @@ inputs:
   description:
     description: "Description of the issue"
     required: true
-  severity:
-    description: "Severity level of the issue"
-    required: false
-    default: "minor"
+  category:
+    description: "Category of the issue"
+    required: true
 
 runs:
   using: "composite"
@@ -27,15 +26,15 @@ runs:
     - name: Create Issue in MantisHub
       shell: bash
       run: |
-        curl --location "${{ inputs.url }}/api/rest/issues/" \
-          --header "Authorization: ${ inputs.api-key }" \
+        curl --location "${{ inputs.url }}/api/rest/issues" \
+          --header "Authorization: ${{ inputs.api-key }}" \
           --header 'Content-Type: application/json' \
           --data '{
             "project": { "id": "${{ inputs.project-id }}" },
             "summary": "${{ inputs.summary }}",
             "description": "${{ inputs.description }}",
-            "severity": { "name": "${{ inputs.severity }}" }
+            "category": { "name": "${{ inputs.category }}" }
           }'
 branding:
   color: "green"
-  icon: "bug"
+  icon: "check"
