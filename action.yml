@@ -27,7 +27,7 @@ runs:
     - name: Create Issue in MantisHub
       shell: bash
       run: |
-        curl --location "${{ inputs.url }}/api/rest/issues/" \
+        curl --location "${{ inputs.url }}/api/rest/issues" \
           --header "Authorization: ${{ inputs.api-key }}" \
           --header 'Content-Type: application/json' \
           --data '{
