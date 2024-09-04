@@ -16,10 +16,9 @@ inputs:
   description:
     description: "Description of the issue"
     required: true
-  severity:
-    description: "Severity level of the issue"
-    required: false
-    default: "minor"
+  category:
+    description: "Category of the issue"
+    required: true
 
 runs:
   using: "composite"
@@ -34,7 +33,7 @@ runs:
             "project": { "id": "${{ inputs.project-id }}" },
             "summary": "${{ inputs.summary }}",
             "description": "${{ inputs.description }}",
-            "severity": { "name": "${{ inputs.severity }}" }
+            "category": { "name": "${{ inputs.category }}" }
           }'
 branding:
   color: "green"
