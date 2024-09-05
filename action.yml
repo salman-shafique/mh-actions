@@ -1,0 +1,28 @@
+name: "Mantis Hub Actions"
+description: "Mantis hub actions for intracting with REST APIs."
+author: "Salman"
+
+inputs:
+  gh-token:
+    description: 'The GitHub token for authentication.'
+    required: true
+  url:
+    description: 'Base URL of the MantisHub API'
+    required: true
+  api-key:
+    description: 'API key for authentication'
+    required: true
+  project-id:
+    description: 'Project ID in MantisHub'
+    required: false
+  body:
+    description: 'JSON body of the payload'
+    required: true
+
+runs:
+  using: "node16"
+  main: "dist/index.js"
+
+branding:
+  icon: 'activity'
+  color: 'green'
