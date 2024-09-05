@@ -3,10 +3,10 @@ name: "Mantis hub workflow"
 on:
   workflow_dispatch:
 jobs:
-  hello:
+  mantishub-flow:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./
         with:
           task: 'create-version'
@@ -14,4 +14,4 @@ jobs:
           api-key: 'NdemqEpCFK3d5tX_b7bN_0nVR1uySVg1'
           project-id: '1'
 #          body: '{"summary":"This is a test issue","description":"This is a test description","category":{"name":"General"},"project":{"id":1}}'
-          body: '{"name":"v1.0.4","description":"Major new version v1.0.1 via node wf","released":true,"obsolete":true,"timestamp":"2024-09-20"}'
+          body: '{"name":"v1.0.5","description":"Major new version v1.0.1 via node wf","released":true,"obsolete":true,"timestamp":"2024-09-20"}'

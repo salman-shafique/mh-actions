@@ -17,20 +17,20 @@ const validation_1 = __nccwpck_require__(9680);
 async function run() {
     try {
         const taskInput = {
-            task: process.env.INPUT_TASK || '',
-            body: process.env.INPUT_BODY || '',
+            task: process.env.INPUT_TASK || "",
+            body: process.env.INPUT_BODY || "",
         };
         if (!taskInput.task || !taskInput.body) {
-            throw new Error('Task and body inputs are required.');
+            throw new Error("Task and body inputs are required.");
         }
         const bodyData = JSON.parse(taskInput.body); // Parse the JSON body
         // Validate JSON body based on task type
         (0, validation_1.validateInput)(taskInput.task, bodyData);
         switch (taskInput.task) {
-            case 'create-issue':
+            case "create-issue":
                 await createIssue(bodyData);
                 break;
-            case 'create-version':
+            case "create-version":
                 await createVersion(bodyData);
                 break;
             default:
@@ -49,13 +49,13 @@ async function createIssue(body) {
     const url = (0, core_1.getInput)("url");
     const apiKey = (0, core_1.getInput)("api-key");
     if (!url || !apiKey) {
-        throw new Error('URL and API Key are required.');
+        throw new Error("URL and API Key are required.");
     }
     try {
         const response = await axios_1.default.post(`${url}/api/rest/issues`, body, {
             headers: {
                 Authorization: apiKey,
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         });
         // Check if the response status is (success)
@@ -63,12 +63,12 @@ async function createIssue(body) {
             console.error(`Failed to create version. Status: ${response.status}`);
             process.exit(1);
         }
-        console.log('Issue created successfully:', response.data);
+        console.log("Issue created successfully:", response.data);
     }
     catch (error) {
-        console.error('Failed to create version:', error.message);
+        console.error("Failed to create version:", error.message);
         if (error.response) {
-            console.error('Error response data:', error.response.data);
+            console.error("Error response data:", error.response.data);
         }
         process.exit(1);
     }
@@ -79,13 +79,13 @@ async function createVersion(body) {
     const apiKey = (0, core_1.getInput)("api-key");
     const projectId = (0, core_1.getInput)("project-id");
     if (!url || !apiKey || !projectId) {
-        throw new Error('URL, API Key, and Project ID are required.');
+        throw new Error("URL, API Key, and Project ID are required.");
     }
     try {
         const response = await axios_1.default.post(`${url}/api/rest/projects/${projectId}/versions`, body, {
             headers: {
                 Authorization: apiKey,
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         });
         // Check if the response status is (success)
@@ -95,9 +95,9 @@ async function createVersion(body) {
         }
     }
     catch (error) {
-        console.error('Failed to create version:', error.message);
+        console.error("Failed to create version:", error.message);
         if (error.response) {
-            console.error('Error response data:', error.response.data);
+            console.error("Error response data:", error.response.data);
         }
         process.exit(1);
     }
@@ -143,10 +143,10 @@ exports.versionSchema = joi_1.default.object({
 function validateInput(task, body) {
     let schema;
     switch (task) {
-        case 'create-issue':
+        case "create-issue":
             schema = exports.issueSchema;
             break;
-        case 'create-version':
+        case "create-version":
             schema = exports.versionSchema;
             break;
         default:
