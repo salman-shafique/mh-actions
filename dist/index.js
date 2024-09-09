@@ -20,8 +20,8 @@ class MantisHubService {
         this.apiClient = axios_1.default.create({
             baseURL: baseUrl,
             headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
+                Authorization: apiKey,
+                "Content-Type": "application/json",
             },
         });
     }
@@ -31,7 +31,7 @@ class MantisHubService {
      */
     async createIssue(payload) {
         try {
-            const response = await this.apiClient.post('/api/rest/issues', payload);
+            const response = await this.apiClient.post("/api/rest/issues", payload);
             this.handleResponse(response);
             return response.data;
         }
@@ -58,7 +58,7 @@ class MantisHubService {
      */
     async fetchProjects() {
         try {
-            const response = await this.apiClient.get('api/rest/projects');
+            const response = await this.apiClient.get("api/rest/projects");
             this.handleResponse(response);
             return response.data;
         }
@@ -74,7 +74,7 @@ class MantisHubService {
         if (![200, 201].includes(response.status)) {
             throw new Error(`Request failed with status code: ${response.status}`);
         }
-        console.log('Request successful:', response.data);
+        console.log("Request successful:", response.data);
     }
     /**
      * Handles errors for Axios requests
@@ -83,17 +83,17 @@ class MantisHubService {
     handleError(error) {
         if (error.response) {
             // Request made and server responded with a status code outside the 2xx range
-            console.error('API Error:', error.response.data);
+            console.error("API Error:", error.response.data);
             throw new Error(`API Error: ${error.response.data.message || error.message}`);
         }
         else if (error.request) {
             // Request was made but no response was received
-            console.error('No response received:', error.request);
-            throw new Error('No response received from the API');
+            console.error("No response received:", error.request);
+            throw new Error("No response received from the API");
         }
         else {
             // Error setting up the request
-            console.error('Error in request setup:', error.message);
+            console.error("Error in request setup:", error.message);
             throw new Error(`Error in request setup: ${error.message}`);
         }
     }
@@ -116,7 +116,7 @@ async function getProjectID(url, apiKey, projectName) {
         const mantisHubService = new mantisHubService_1.MantisHubService(url, apiKey);
         const response = await mantisHubService.fetchProjects();
         // Check if response.projects is empty
-        if (!(response.hasOwnProperty('projects') && response.projects.length > 0)) {
+        if (!(Object.prototype.hasOwnProperty.call(response, "projects") && response.projects.length > 0)) {
             console.log(`No results found`);
             process.exit(1);
         }
@@ -131,7 +131,7 @@ async function getProjectID(url, apiKey, projectName) {
         }
     }
     catch (error) {
-        console.error('Error fetching projects:', error.message);
+        console.error("Error fetching projects:", error.message);
         process.exit(1);
     }
 }
@@ -143,7 +143,7 @@ exports.isNumber = isNumber;
 // Utility function to get input as a boolean
 function getInputAsBoolean(name) {
     const input = name.toLowerCase();
-    return input === 'true';
+    return input === "true";
 }
 exports.getInputAsBoolean = getInputAsBoolean;
 
@@ -26453,10 +26453,10 @@ const mantisHubService_1 = __nccwpck_require__(8897);
 async function run() {
     try {
         const taskInput = {
-            task: (0, core_1.getInput)('task') || process.env.GITHUB_JOB || "",
+            task: (0, core_1.getInput)("task") || process.env.GITHUB_JOB || "",
             url: (0, core_1.getInput)("url") || "",
             apiKey: (0, core_1.getInput)("api-key") || "",
-            project: (0, core_1.getInput)("project") || ""
+            project: (0, core_1.getInput)("project") || "",
         };
         console.log(process.env);
         if (!taskInput.task) {
@@ -26491,14 +26491,14 @@ exports.run = run;
 async function createIssue(data) {
     try {
         const body = {
-            "summary": (0, core_1.getInput)("summary"),
-            "description": (0, core_1.getInput)("description"),
-            "category": {
-                "name": (0, core_1.getInput)("category")
+            summary: (0, core_1.getInput)("summary"),
+            description: (0, core_1.getInput)("description"),
+            category: {
+                name: (0, core_1.getInput)("category"),
             },
-            "project": {
-                "name": data.project
-            }
+            project: {
+                name: data.project,
+            },
         };
         const validatedBody = (0, validation_1.validateInput)(data.task, body);
         const mantisHubService = new mantisHubService_1.MantisHubService(data.url, data.apiKey);
@@ -26520,16 +26520,18 @@ async function createIssue(data) {
 async function createVersion(data) {
     try {
         const body = {
-            "name": (0, core_1.getInput)("name"),
-            "description": (0, core_1.getInput)("description"),
-            "released": (0, core_1.getInput)("released"),
-            "obsolete": (0, core_1.getInput)("obsolete"),
-            "timestamp": (0, core_1.getInput)("timestamp")
+            name: (0, core_1.getInput)("name"),
+            description: (0, core_1.getInput)("description"),
+            released: (0, core_1.getInput)("released"),
+            obsolete: (0, core_1.getInput)("obsolete"),
+            timestamp: (0, core_1.getInput)("timestamp"),
         };
         // validate request body for create version
         const validatedBody = (0, validation_1.validateInput)(data.task, body);
         // fetch project id from project name
-        const projectID = (0, util_1.isNumber)(data.project) ? data.project : await (0, util_1.getProjectID)(data.url, data.apiKey, String(data.project));
+        const projectID = (0, util_1.isNumber)(data.project)
+            ? data.project
+            : await (0, util_1.getProjectID)(data.url, data.apiKey, String(data.project));
         // create version API call
         const mantisHubService = new mantisHubService_1.MantisHubService(data.url, data.apiKey);
         return await mantisHubService.createVersion(validatedBody, projectID);
