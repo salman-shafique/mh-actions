@@ -9,7 +9,7 @@ export async function getProjectID(url: string, apiKey: string, projectName: str
       console.log(`No results found`);
       process.exit(1);
     }
-    // Use `find` to search for the project by name
+    // use `find` to search for the project by name
     const project = response.projects.find((p: { name: string }) => p.name === projectName);
     if (project) {
       return project.id; // Return the project ID if found

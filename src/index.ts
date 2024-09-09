@@ -22,7 +22,6 @@ export async function run() {
       apiKey: getInput("api-key") || "",
       project: getInput("project") || "",
     };
-    console.log(process.env);
     if (!taskInput.task) {
       throw new Error("Task must defined");
     }
