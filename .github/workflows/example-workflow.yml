@@ -1,0 +1,37 @@
+name: "MantisHub Example Workflow"
+
+on:
+  workflow_dispatch:
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/create-issue
+        with:
+          url: 'https://salmanshafiq.mantishub.io'
+          api-key: {{some-token}}
+          project: 'MyProject'
+          summary: 'This is a test issue from gh actions'
+          description: |
+            This is a test description from gh actions
+            bugs fixes
+          category: 'General'
+
+  create-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/create-version
+        with:
+          url: 'https://salmanshafiq.mantishub.io'
+          api-key: {{some-token}}
+          project: 'MyProject'
+          name: v1.0.11
+          description: |
+            Major new version v1.0.11 created from gh actions.
+            For bugs fixes
+          released: false
+          obsolete: true
+          timestamp: '2025-09-20'
+

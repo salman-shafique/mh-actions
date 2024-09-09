@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4822:
+/***/ 8897:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -10,101 +10,142 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
-const core_1 = __nccwpck_require__(2186);
+exports.MantisHubService = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(8757));
-const validation_1 = __nccwpck_require__(9680);
-async function run() {
-    try {
-        const taskInput = {
-            task: process.env.INPUT_TASK || "",
-            body: process.env.INPUT_BODY || "",
-        };
-        if (!taskInput.task || !taskInput.body) {
-            throw new Error("Task and body inputs are required.");
-        }
-        const bodyData = JSON.parse(taskInput.body); // Parse the JSON body
-        // Validate JSON body based on task type
-        (0, validation_1.validateInput)(taskInput.task, bodyData);
-        switch (taskInput.task) {
-            case "create-issue":
-                await createIssue(bodyData);
-                break;
-            case "create-version":
-                await createVersion(bodyData);
-                break;
-            default:
-                console.error(`Unknown task: ${taskInput.task}`);
-                process.exit(1);
-        }
-    }
-    catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
-    }
-}
-exports.run = run;
-// Function to create an issue in MantisHub
-async function createIssue(body) {
-    const url = (0, core_1.getInput)("url");
-    const apiKey = (0, core_1.getInput)("api-key");
-    if (!url || !apiKey) {
-        throw new Error("URL and API Key are required.");
-    }
-    try {
-        const response = await axios_1.default.post(`${url}/api/rest/issues`, body, {
+class MantisHubService {
+    constructor(baseUrl, apiKey) {
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+        // Initialize the Axios instance with default configuration
+        this.apiClient = axios_1.default.create({
+            baseURL: baseUrl,
             headers: {
-                Authorization: apiKey,
-                "Content-Type": "application/json",
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
             },
         });
-        // Check if the response status is (success)
-        if (![200, 201].includes(response.status)) {
-            console.error(`Failed to create version. Status: ${response.status}`);
-            process.exit(1);
-        }
-        console.log("Issue created successfully:", response.data);
     }
-    catch (error) {
-        console.error("Failed to create version:", error.message);
-        if (error.response) {
-            console.error("Error response data:", error.response.data);
+    /**
+     * Creates an issue in MantisHub
+     * @param payload - The issue data
+     */
+    async createIssue(payload) {
+        try {
+            const response = await this.apiClient.post('/api/rest/issues', payload);
+            this.handleResponse(response);
+            return response.data;
         }
-        process.exit(1);
+        catch (error) {
+            this.handleError(error);
+        }
+    }
+    /**
+     * Creates a new version in MantisHub
+     * @param payload - The version data
+     */
+    async createVersion(payload, projectID) {
+        try {
+            const response = await this.apiClient.post(`/api/rest/projects/${projectID}/versions`, payload);
+            this.handleResponse(response);
+            return response.data;
+        }
+        catch (error) {
+            this.handleError(error);
+        }
+    }
+    /**
+     * Fetch projects
+     */
+    async fetchProjects() {
+        try {
+            const response = await this.apiClient.get('api/rest/projects');
+            this.handleResponse(response);
+            return response.data;
+        }
+        catch (error) {
+            this.handleError(error);
+        }
+    }
+    /**
+     * Handles successful responses
+     * @param response - The Axios response object
+     */
+    handleResponse(response) {
+        if (![200, 201].includes(response.status)) {
+            throw new Error(`Request failed with status code: ${response.status}`);
+        }
+        console.log('Request successful:', response.data);
+    }
+    /**
+     * Handles errors for Axios requests
+     * @param error - The error object
+     */
+    handleError(error) {
+        if (error.response) {
+            // Request made and server responded with a status code outside the 2xx range
+            console.error('API Error:', error.response.data);
+            throw new Error(`API Error: ${error.response.data.message || error.message}`);
+        }
+        else if (error.request) {
+            // Request was made but no response was received
+            console.error('No response received:', error.request);
+            throw new Error('No response received from the API');
+        }
+        else {
+            // Error setting up the request
+            console.error('Error in request setup:', error.message);
+            throw new Error(`Error in request setup: ${error.message}`);
+        }
     }
 }
-// Function to create a version in MantisHub
-async function createVersion(body) {
-    const url = (0, core_1.getInput)("url");
-    const apiKey = (0, core_1.getInput)("api-key");
-    const projectId = (0, core_1.getInput)("project-id");
-    if (!url || !apiKey || !projectId) {
-        throw new Error("URL, API Key, and Project ID are required.");
-    }
+exports.MantisHubService = MantisHubService;
+
+
+/***/ }),
+
+/***/ 4024:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputAsBoolean = exports.isNumber = exports.getProjectID = void 0;
+const mantisHubService_1 = __nccwpck_require__(8897);
+async function getProjectID(url, apiKey, projectName) {
     try {
-        const response = await axios_1.default.post(`${url}/api/rest/projects/${projectId}/versions`, body, {
-            headers: {
-                Authorization: apiKey,
-                "Content-Type": "application/json",
-            },
-        });
-        // Check if the response status is (success)
-        if (![200, 201].includes(response.status)) {
-            console.error(`Failed to create version. Status: ${response.status}`);
+        const mantisHubService = new mantisHubService_1.MantisHubService(url, apiKey);
+        const response = await mantisHubService.fetchProjects();
+        // Check if response.projects is empty
+        if (!(response.hasOwnProperty('projects') && response.projects.length > 0)) {
+            console.log(`No results found`);
+            process.exit(1);
+        }
+        // Use `find` to search for the project by name
+        const project = response.projects.find((p) => p.name === projectName);
+        if (project) {
+            return project.id; // Return the project ID if found
+        }
+        else {
+            console.error(`Project with name "${projectName}" not found.`);
             process.exit(1);
         }
     }
     catch (error) {
-        console.error("Failed to create version:", error.message);
-        if (error.response) {
-            console.error("Error response data:", error.response.data);
-        }
+        console.error('Error fetching projects:', error.message);
         process.exit(1);
     }
 }
-if (!process.env.JEST_WORKER_ID) {
-    run();
+exports.getProjectID = getProjectID;
+function isNumber(value) {
+    return !isNaN(Number(value));
 }
+exports.isNumber = isNumber;
+// Utility function to get input as a boolean
+function getInputAsBoolean(name) {
+    const input = name.toLowerCase();
+    return input === 'true';
+}
+exports.getInputAsBoolean = getInputAsBoolean;
 
 
 /***/ }),
@@ -125,7 +166,7 @@ exports.issueSchema = joi_1.default.object({
     summary: joi_1.default.string().required(),
     description: joi_1.default.string().required(),
     project: joi_1.default.object({
-        id: joi_1.default.number().required(),
+        name: joi_1.default.string().required(),
     }).required(),
     category: joi_1.default.object({
         name: joi_1.default.string().required(),
@@ -152,11 +193,12 @@ function validateInput(task, body) {
         default:
             throw new Error(`Unknown task: ${task}`);
     }
-    const { error } = schema.validate(body);
+    const { error, value } = schema.validate(body);
     if (error) {
         console.error(`Validation error: ${error.message}`);
         process.exit(1); // Fail the job if validation fails
     }
+    return value;
 }
 exports.validateInput = validateInput;
 
@@ -1947,7 +1989,7 @@ function isLoopbackAddress(host) {
 
 const Assert = __nccwpck_require__(2718);
 const Clone = __nccwpck_require__(5578);
-const Merge = __nccwpck_require__(1309);
+const Merge = __nccwpck_require__(445);
 const Reach = __nccwpck_require__(8891);
 
 
@@ -2750,7 +2792,7 @@ module.exports = function () { };
 
 /***/ }),
 
-/***/ 1309:
+/***/ 445:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -5862,7 +5904,7 @@ exports.location = function (depth = 0) {
 module.exports =
 {
   parallel      : __nccwpck_require__(8210),
-  serial        : __nccwpck_require__(445),
+  serial        : __nccwpck_require__(4341),
   serialOrdered : __nccwpck_require__(3578)
 };
 
@@ -6191,7 +6233,7 @@ function parallel(list, iterator, callback)
 
 /***/ }),
 
-/***/ 445:
+/***/ 4341:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var serialOrdered = __nccwpck_require__(3578);
@@ -8931,7 +8973,7 @@ internals.serializer = function () {
 const Assert = __nccwpck_require__(2718);
 const Clone = __nccwpck_require__(5578);
 const DeepEqual = __nccwpck_require__(5801);
-const Merge = __nccwpck_require__(1309);
+const Merge = __nccwpck_require__(445);
 
 const Cache = __nccwpck_require__(3355);
 const Common = __nccwpck_require__(2448);
@@ -14238,7 +14280,7 @@ internals.debug = function (state, event) {
 
 
 const Assert = __nccwpck_require__(2718);
-const Merge = __nccwpck_require__(1309);
+const Merge = __nccwpck_require__(445);
 
 const Any = __nccwpck_require__(9512);
 const Common = __nccwpck_require__(2448);
@@ -26392,12 +26434,120 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4822);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core_1 = __nccwpck_require__(2186);
+const validation_1 = __nccwpck_require__(9680);
+const util_1 = __nccwpck_require__(4024);
+const mantisHubService_1 = __nccwpck_require__(8897);
+/**
+ * Main run function
+ *
+ */
+async function run() {
+    try {
+        const taskInput = {
+            task: (0, core_1.getInput)('task') || process.env.GITHUB_JOB || "",
+            url: (0, core_1.getInput)("url") || "",
+            apiKey: (0, core_1.getInput)("api-key") || "",
+            project: (0, core_1.getInput)("project") || ""
+        };
+        console.log(process.env);
+        if (!taskInput.task) {
+            throw new Error("Task must defined");
+        }
+        if (!taskInput.url || !taskInput.apiKey || !taskInput.project) {
+            throw new Error("Project name, url and api-key inputs are required.");
+        }
+        switch (taskInput.task) {
+            case "create-issue":
+                await createIssue(taskInput);
+                break;
+            case "create-version":
+                await createVersion(taskInput);
+                break;
+            default:
+                console.error(`Unknown task: ${taskInput.task}`);
+                process.exit(1);
+        }
+    }
+    catch (error) {
+        console.error(`Error: ${error.message}`);
+        process.exit(1);
+    }
+}
+exports.run = run;
+/**
+ * Function to create an issue in MantisHub
+ *
+ * @param data
+ */
+async function createIssue(data) {
+    try {
+        const body = {
+            "summary": (0, core_1.getInput)("summary"),
+            "description": (0, core_1.getInput)("description"),
+            "category": {
+                "name": (0, core_1.getInput)("category")
+            },
+            "project": {
+                "name": data.project
+            }
+        };
+        const validatedBody = (0, validation_1.validateInput)(data.task, body);
+        const mantisHubService = new mantisHubService_1.MantisHubService(data.url, data.apiKey);
+        return await mantisHubService.createIssue(validatedBody);
+    }
+    catch (error) {
+        console.error("Failed to create version:", error.message);
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+        }
+        process.exit(1);
+    }
+}
+/**
+ * Function to create a version in MantisHub
+ *
+ * @param data
+ */
+async function createVersion(data) {
+    try {
+        const body = {
+            "name": (0, core_1.getInput)("name"),
+            "description": (0, core_1.getInput)("description"),
+            "released": (0, core_1.getInput)("released"),
+            "obsolete": (0, core_1.getInput)("obsolete"),
+            "timestamp": (0, core_1.getInput)("timestamp")
+        };
+        // validate request body for create version
+        const validatedBody = (0, validation_1.validateInput)(data.task, body);
+        // fetch project id from project name
+        const projectID = (0, util_1.isNumber)(data.project) ? data.project : await (0, util_1.getProjectID)(data.url, data.apiKey, String(data.project));
+        // create version API call
+        const mantisHubService = new mantisHubService_1.MantisHubService(data.url, data.apiKey);
+        return await mantisHubService.createVersion(validatedBody, projectID);
+    }
+    catch (error) {
+        console.error("Failed to create version:", error.message);
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+        }
+        process.exit(1);
+    }
+}
+if (!process.env.JEST_WORKER_ID) {
+    run();
+}
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

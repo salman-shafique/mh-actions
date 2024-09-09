@@ -1,32 +1,41 @@
 import { getInput } from "@actions/core";
-import axios from "axios";
 import { validateInput } from "./validations/validation";
+import { getProjectID, isNumber } from "./util";
+import { MantisHubService } from "./services/mantisHubService";
+
 interface TaskInput {
   task: string;
-  body: string;
+  url: string;
+  apiKey: string;
+  project: string | number;
 }
+
+/**
+ * Main run function
+ *
+ */
 export async function run() {
   try {
     const taskInput: TaskInput = {
-      task: process.env.INPUT_TASK || "",
-      body: process.env.INPUT_BODY || "",
+      task: getInput("task") || process.env.GITHUB_JOB || "",
+      url: getInput("url") || "",
+      apiKey: getInput("api-key") || "",
+      project: getInput("project") || "",
     };
-
-    if (!taskInput.task || !taskInput.body) {
-      throw new Error("Task and body inputs are required.");
+    console.log(process.env);
+    if (!taskInput.task) {
+      throw new Error("Task must defined");
     }
-
-    const bodyData = JSON.parse(taskInput.body); // Parse the JSON body
-
-    // Validate JSON body based on task type
-    validateInput(taskInput.task, bodyData);
+    if (!taskInput.url || !taskInput.apiKey || !taskInput.project) {
+      throw new Error("Project name, url and api-key inputs are required.");
+    }
 
     switch (taskInput.task) {
       case "create-issue":
-        await createIssue(bodyData);
+        await createIssue(taskInput);
         break;
       case "create-version":
-        await createVersion(bodyData);
+        await createVersion(taskInput);
         break;
       default:
         console.error(`Unknown task: ${taskInput.task}`);
@@ -38,28 +47,26 @@ export async function run() {
   }
 }
 
-// Function to create an issue in MantisHub
-async function createIssue(body: any) {
-  const url = getInput("url");
-  const apiKey = getInput("api-key");
-
-  if (!url || !apiKey) {
-    throw new Error("URL and API Key are required.");
-  }
-
+/**
+ * Function to create an issue in MantisHub
+ *
+ * @param data
+ */
+async function createIssue(data: any) {
   try {
-    const response = await axios.post(`${url}/api/rest/issues`, body, {
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json",
+    const body = {
+      summary: getInput("summary"),
+      description: getInput("description"),
+      category: {
+        name: getInput("category"),
       },
-    });
-    // Check if the response status is (success)
-    if (![200, 201].includes(response.status)) {
-      console.error(`Failed to create version. Status: ${response.status}`);
-      process.exit(1);
-    }
-    console.log("Issue created successfully:", response.data);
+      project: {
+        name: data.project,
+      },
+    };
+    const validatedBody = validateInput(data.task, body);
+    const mantisHubService = new MantisHubService(data.url, data.apiKey);
+    return await mantisHubService.createIssue(validatedBody);
   } catch (error: any) {
     console.error("Failed to create version:", error.message);
     if (error.response) {
@@ -69,28 +76,29 @@ async function createIssue(body: any) {
   }
 }
 
-// Function to create a version in MantisHub
-async function createVersion(body: any) {
-  const url = getInput("url");
-  const apiKey = getInput("api-key");
-  const projectId = getInput("project-id");
-
-  if (!url || !apiKey || !projectId) {
-    throw new Error("URL, API Key, and Project ID are required.");
-  }
-
+/**
+ * Function to create a version in MantisHub
+ *
+ * @param data
+ */
+async function createVersion(data: any) {
   try {
-    const response = await axios.post(`${url}/api/rest/projects/${projectId}/versions`, body, {
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json",
-      },
-    });
-    // Check if the response status is (success)
-    if (![200, 201].includes(response.status)) {
-      console.error(`Failed to create version. Status: ${response.status}`);
-      process.exit(1);
-    }
+    const body = {
+      name: getInput("name"),
+      description: getInput("description"),
+      released: getInput("released"),
+      obsolete: getInput("obsolete"),
+      timestamp: getInput("timestamp"),
+    };
+    // validate request body for create version
+    const validatedBody = validateInput(data.task, body);
+    // fetch project id from project name
+    const projectID = isNumber(data.project)
+      ? data.project
+      : await getProjectID(data.url, data.apiKey, String(data.project));
+    // create version API call
+    const mantisHubService = new MantisHubService(data.url, data.apiKey);
+    return await mantisHubService.createVersion(validatedBody, projectID);
   } catch (error: any) {
     console.error("Failed to create version:", error.message);
     if (error.response) {

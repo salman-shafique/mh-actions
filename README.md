@@ -1,82 +1,56 @@
 # MantisHub GitHub Actions
 
-This repository provides reusable GitHub Actions for interacting with MantisHub, including creating issues and managing versions.
+The goal is to offer a set of GitHub Actions that MantisHub (and possibly MantisBT) users can use to integrate MantisHub into their GitHub workflows.
 
-## Actions
+### Create-Version
 
-### 1. Create MantisHub Issue
-
-An action to create issues in MantisHub by making a REST API call. It is reusable across multiple repositories and configurable via parameters.
-
-#### Inputs
-
-| Input        | Required | Description                              |
-|--------------|----------|------------------------------------------|
-| `url`        | Yes      | Base URL of the MantisHub API            |
-| `api-key`    | Yes      | API key for authentication               |
-| `project-id` | Yes      | Project ID in MantisHub                  |
-| `summary`    | Yes      | Summary of the issue                     |
-| `description`| Yes      | Description of the issue                 |
-| `category`   | Yes      | Category of the issue                    |
-
-#### Usage
-
-To use this action to create an issue in MantisHub, add the following step to your workflow file:
+This is an action that will often be triggered when a new tag is applied to the repo. For example, when a tag is added, create a version in MantisHub for the release.
 
 ```yaml
-jobs:
-  create-issue:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: vboctor/mh-gh-actions/create-mantishub-issue@v1
-        with:
-          url: 'https://example.mantishub.io'
-          api-key: ${{ secrets.MANTISHUB_API_KEY }}
-          project-id: '123'
-          summary: 'Bug Report'
-          description: 'Details of the bug...'
-          category: 'General'
+create-version: 
+  - url: https://example.mantishub.io 
+  - token: {{some-token}} 
+  - project: "my-project" 
+  - name: "{{tag-name}}" 
+  - released: true
 ```
+The defaults for field are:
 
-### 2. Create MantisHub Version
+- `released` defaults to `true`.
+- `obsolete` defaults to `false`.
+- `timestamp` defaults to `now`.
 
-An action to create a new version in MantisHub by making a REST API call. It is reusable across multiple repositories and configurable via parameters.
-
-#### Inputs
-
-| Input         | Required | Description                                      |
-|---------------|----------|--------------------------------------------------|
-| `url`         | Yes      | Base URL of the MantisHub API                    |
-| `api-key`     | Yes      | API key for authentication                       |
-| `project-id`  | Yes      | Project ID or name in MantisHub                  |
-| `name`        | Yes      | Name of the version to create                    |
-| `description` | No       | Description for the version                      |
-| `released`    | No       | Set to `true` if the version is released         |
-| `obsolete`    | No       | Set to `true` if the version is obsolete         |
-| `timestamp`   | No       | Date of the release e.g., YYYY-MM-DD             |
-
-#### Usage
-
-To use this action to create a version in MantisHub, add the following step to your workflow file:
+### Next-Version
+One pattern is to always have the next release be named “vNext” and renaming such release to the appropriate name when released and then creating a new “vNext”. It should be possible to implement such pattern.
 
 ```yaml
-jobs:
-  create-version:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: vboctor/mh-gh-actions/create-mantishub-version@v1
-        with:
-          url: 'https://example.mantishub.io'
-          api-key: ${{ secrets.MANTISHUB_API_KEY }}
-          project-id: '123'
-          name: 'v1.0.1'
-          description: 'Initial release'
-          released: 'false'
-          obsolete: 'false'
-          timestamp: '2024-09-20'
+create-version: 
+  - url: https://example.mantishub.io 
+  - token: {{some-token}} 
+  - project: "my-project" 
+  - name: "{{tag-name}}" 
+  - released: true
 ```
+This will do the following:
 
-### Notes
+- Rename `vNext` to `{{tag-name}}` and mark it as released by setting `released = true` and `release-date = now`
+- Create a new `vNext` release with `release-date` of `now + 7` days and `released = false` and `obsolete = false`.
 
-- Ensure you replace `your-username/your-action-repo` with the correct repository name.
-- Use GitHub Secrets to securely pass sensitive information like the API key.
+### 2. Create-Issue
+
+There can be cases where it makes sense to create issues in MantisHub from GitHub actions. For
+example:
+- After creating a new release, create a work item for follow-up steps.
+- When build breaks, open a work item to fix it.
+- Certain workflow that is manually creating and includes some manual work to be done as a follow-up.
+
+
+```yaml
+create-issue:
+  - url: https://example.mantishub.io
+  - token: {{some-token}}
+  - project: "my-project"
+  - summary: "Build is broken"
+  - description: "{{error}}"
+  - handler: "some-engineer"
+```

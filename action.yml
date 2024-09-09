@@ -1,10 +1,9 @@
-name: "Mantis Hub Actions"
-description: "Mantis hub actions for intracting with REST APIs."
-author: "Salman"
-
+name: "MantisHub Actions"
+description: "MantisHub actions for creating issues and versions"
+author: "Salman Shafiq"
 inputs:
-  gh-token:
-    description: 'The GitHub token for authentication.'
+  task:
+    description: 'Task to perform e.g create-issue or create-version'
     required: true
   url:
     description: 'Base URL of the MantisHub API'
@@ -12,12 +11,10 @@ inputs:
   api-key:
     description: 'API key for authentication'
     required: true
-  project-id:
-    description: 'Project ID in MantisHub'
-    required: false
-  body:
-    description: 'JSON body of the payload'
+  project:
+    description: 'Project name in MantisHub'
     required: true
+
 
 runs:
   using: "node16"

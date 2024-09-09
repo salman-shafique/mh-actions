@@ -5,7 +5,7 @@ export const issueSchema = Joi.object({
   summary: Joi.string().required(),
   description: Joi.string().required(),
   project: Joi.object({
-    id: Joi.number().required(),
+    name: Joi.string().required(),
   }).required(),
   category: Joi.object({
     name: Joi.string().required(),
@@ -36,9 +36,10 @@ export function validateInput(task: string, body: any) {
       throw new Error(`Unknown task: ${task}`);
   }
 
-  const { error } = schema.validate(body);
+  const { error, value } = schema.validate(body);
   if (error) {
     console.error(`Validation error: ${error.message}`);
     process.exit(1); // Fail the job if validation fails
   }
+  return value;
 }
