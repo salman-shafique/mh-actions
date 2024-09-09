@@ -120,7 +120,7 @@ async function getProjectID(url, apiKey, projectName) {
             console.log(`No results found`);
             process.exit(1);
         }
-        // Use `find` to search for the project by name
+        // use `find` to search for the project by name
         const project = response.projects.find((p) => p.name === projectName);
         if (project) {
             return project.id; // Return the project ID if found
@@ -26458,7 +26458,6 @@ async function run() {
             apiKey: (0, core_1.getInput)("api-key") || "",
             project: (0, core_1.getInput)("project") || "",
         };
-        console.log(process.env);
         if (!taskInput.task) {
             throw new Error("Task must defined");
         }
